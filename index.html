@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Gestion Restaurant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style id="dynamicPrintStyle"></style>
+<style>
+  :root{
+    --bg:#F5F6EF; --surface:#FFFFFF; --ink:#24261F; --muted:#6F715F; --line:#E1E1D3;
+    --primary:#2F4B3C; --primary-light:#3F614E; --primary-dim:#eef2ec;
+    --accent:#D9A441; --accent-dark:#B9862F;
+    --danger:#B5533C; --danger-dim:#f7e9e4;
+    --success:#4C7A63; --success-dim:#e9f1ec;
+    --radius:8px; --shadow:0 2px 10px rgba(36,38,31,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;font-size:15px;}
+  h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif;font-weight:600;letter-spacing:-0.01em;color:var(--ink);margin:0;}
+  button{font-family:inherit;}
+  input,select,textarea{font-family:inherit;font-size:15px;border:1px solid var(--line);border-radius:6px;padding:9px 11px;background:#fff;color:var(--ink);width:100%;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(47,75,60,0.12);}
+  label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px;font-weight:500;}
+  .field{margin-bottom:14px;}
+  .row{display:flex;gap:12px;}
+  .row > *{flex:1;min-width:0;}
+  a{color:inherit;}
+  #app{min-height:100vh;display:flex;flex-direction:column;}
+  .offline-banner{background:var(--danger-dim);color:var(--danger);font-size:12.5px;font-weight:600;text-align:center;padding:8px 14px;}
+  .app-shell{display:flex;flex:1;min-height:0;}
+  .sidebar{width:216px;background:var(--primary);color:#EFEFE6;display:flex;flex-direction:column;padding:22px 14px;flex-shrink:0;}
+  .brand{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;padding:0 8px;}
+  .brand-sub{font-size:11.5px;color:#B9C9BE;padding:0 8px;margin-bottom:26px;}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:7px;color:#D7E1DA;cursor:pointer;font-size:14px;font-weight:500;margin-bottom:2px;position:relative;}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .nav-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  .nav-item.active{background:rgba(255,255,255,0.13);color:#fff;}
+  .nav-badge{background:var(--accent);color:#3a2a08;font-size:10.5px;font-weight:700;border-radius:9px;padding:1px 6px;margin-left:auto;}
+  .sidebar-foot{margin-top:auto;padding:12px 8px 0;border-top:1px solid rgba(255,255,255,0.12);}
+  .user-pill{display:flex;align-items:center;gap:9px;font-size:13px;color:#EFEFE6;margin-bottom:10px;}
+  .user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#3a2a08;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;}
+  .logout-btn{background:none;border:1px solid rgba(255,255,255,0.25);color:#EFEFE6;padding:7px 10px;border-radius:6px;font-size:12.5px;cursor:pointer;width:100%;}
+  .logout-btn:hover{background:rgba(255,255,255,0.08);}
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 30px;border-bottom:1px solid var(--line);background:var(--surface);}
+  .topbar h1{font-size:22px;}
+  .topbar .date{font-size:13px;color:var(--muted);margin-top:2px;}
+  .content{padding:26px 30px 130px;flex:1;overflow-y:auto;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:7px;border:1px solid transparent;font-size:14px;font-weight:600;cursor:pointer;background:var(--primary);color:#fff;}
+  .btn:hover{background:var(--primary-light);}
+  .btn.accent{background:var(--accent);color:#3a2a08;}
+  .btn.accent:hover{background:var(--accent-dark);color:#fff;}
+  .btn.ghost{background:transparent;color:var(--primary);border-color:var(--line);}
+  .btn.ghost:hover{background:var(--primary-dim);}
+  .btn.danger{background:var(--danger);color:#fff;}
+  .btn.danger:hover{background:#96412e;}
+  .btn.sm{padding:6px 10px;font-size:12.5px;border-radius:6px;}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .icon-btn{background:none;border:1px solid var(--line);border-radius:6px;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);}
+  .icon-btn:hover{border-color:var(--primary);color:var(--primary);}
+  .grid{display:grid;gap:16px;}
+  .grid.cols-4{grid-template-columns:repeat(4,1fr);}
+  .grid.cols-3{grid-template-columns:repeat(3,1fr);}
+  .grid.cols-2{grid-template-columns:repeat(2,1fr);}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;}
+  .stat-card .stat-label{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:8px;}
+  .stat-card .stat-value{font-family:'Fraunces',serif;font-size:30px;font-weight:600;line-height:1;}
+  .stat-card .stat-note{font-size:12px;color:var(--muted);margin-top:6px;}
+  .section-title{font-size:17px;margin:28px 0 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .section-title:first-child{margin-top:0;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  thead th{text-align:left;font-size:11.5px;color:var(--muted);font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--line);}
+  tbody td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FBFBF7;}
+  .table-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;overflow-x:auto;}
+  .table-wrap table td:first-child,.table-wrap table th:first-child{padding-left:18px;}
+  .table-wrap table td:last-child,.table-wrap table th:last-child{padding-right:18px;}
+  .tag{display:inline-block;padding:3px 9px;border-radius:5px;font-size:11.5px;font-weight:600;white-space:nowrap;}
+  .tag.attente{background:#F3ECD8;color:#8a6d1c;}
+  .tag.preparation{background:#EAE4F4;color:#5c4a91;}
+  .tag.livraison{background:#dfeaf5;color:#3c6690;}
+  .tag.terminee{background:var(--success-dim);color:var(--success);}
+  .tag.annulee{background:var(--danger-dim);color:var(--danger);}
+  .tag.paye{background:var(--success-dim);color:var(--success);}
+  .tag.impaye{background:var(--danger-dim);color:var(--danger);}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty-state .display{font-size:19px;color:var(--ink);margin-bottom:6px;}
+  .filters{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+  .filters select,.filters input{width:auto;min-width:150px;}
+  .search-input{max-width:240px;}
+  .item-line{border:1px solid var(--line);border-radius:7px;padding:14px;margin-bottom:12px;background:#FBFBF7;}
+  .item-line-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .item-line-head .num{font-weight:600;font-size:13px;color:var(--primary);}
+  .supp-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+  .supp-chip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer;background:#fff;user-select:none;}
+  .supp-chip.on{background:var(--primary-dim);border-color:var(--primary-light);color:var(--primary);font-weight:600;}
+  .supp-chip input{display:none;}
+  .line-total{text-align:right;font-weight:600;margin-top:8px;font-size:14px;}
+  .form-footer-bar{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line);margin:0 -30px -130px;padding:16px 30px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .total-display{font-family:'Fraunces',serif;font-size:22px;}
+  .total-display span{color:var(--muted);font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;display:block;font-weight:500;}
+  .type-toggle{display:flex;gap:8px;margin-bottom:14px;}
+  .type-btn{flex:1;text-align:center;padding:12px 8px;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--muted);background:#fff;}
+  .type-btn.on{border-color:var(--primary);background:var(--primary-dim);color:var(--primary);}
+  .modal-overlay{position:fixed;inset:0;background:rgba(36,38,31,0.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;overflow-y:auto;}
+  .modal{background:var(--surface);border-radius:10px;max-width:460px;width:100%;padding:24px;max-height:88vh;overflow-y:auto;margin:auto;}
+  .modal h3{margin-bottom:16px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+  .login-screen{min-height:100vh;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--primary);padding:20px;}
+  .login-card{background:var(--surface);border-radius:12px;padding:38px 34px;width:100%;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,0.25);}
+  .login-brand{font-family:'Fraunces',serif;font-size:26px;font-weight:700;text-align:center;margin-bottom:4px;}
+  .login-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px;}
+  .user-select-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+  .user-select-btn{border:1.5px solid var(--line);border-radius:8px;padding:14px 8px;text-align:center;cursor:pointer;background:#fff;}
+  .user-select-btn.chosen{border-color:var(--primary);background:var(--primary-dim);}
+  .user-select-btn .ua{width:38px;height:38px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-weight:700;font-family:'Fraunces',serif;}
+  .user-select-btn .un{font-size:13px;font-weight:600;}
+  .user-select-btn .ur{font-size:11px;color:var(--muted);}
+  .pin-dots{display:flex;justify-content:center;gap:12px;margin:18px 0;}
+  .pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line);}
+  .pin-dot.filled{background:var(--primary);border-color:var(--primary);}
+  .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .pin-key{padding:16px 0;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:18px;font-weight:600;cursor:pointer;font-family:'Fraunces',serif;}
+  .pin-key:hover{background:var(--primary-dim);}
+  .login-error{color:var(--danger);font-size:13px;text-align:center;margin-top:10px;min-height:16px;}
+  .bottom-nav{display:none;}
+  #printArea{display:none;}
+  .invoice{max-width:420px;margin:0 auto;font-family:'IBM Plex Sans',sans-serif;color:#111;}
+  .invoice-head{text-align:center;border-bottom:2px dashed #999;padding-bottom:14px;margin-bottom:14px;}
+  .invoice-head h2{font-family:'Fraunces',serif;font-size:20px;}
+  .invoice-meta{font-size:12.5px;color:#555;margin-top:6px;line-height:1.6;}
+  .invoice table{width:100%;font-size:13px;margin-bottom:10px;}
+  .invoice th{border-bottom:1px solid #ccc;text-align:left;padding:4px 0;font-size:11px;}
+  .invoice td{padding:5px 0;border-bottom:1px dotted #ddd;}
+  .invoice .supp-note{font-size:11px;color:#666;}
+  .invoice-total-row{display:flex;justify-content:space-between;font-size:16px;font-weight:700;margin-top:8px;border-top:2px dashed #999;padding-top:10px;}
+  .invoice-sub-row{display:flex;justify-content:space-between;font-size:12.5px;color:#555;padding:2px 0;}
+  .invoice-foot{text-align:center;font-size:11.5px;color:#777;margin-top:18px;}
+  .proforma{max-width:720px;margin:0 auto;font-family:'IBM Plex Sans',sans-serif;color:#111;font-size:13px;}
+  .proforma-head{display:flex;justify-content:space-between;gap:20px;border-bottom:3px solid #24261F;padding-bottom:16px;margin-bottom:20px;}
+  .proforma-head h2{font-family:'Fraunces',serif;font-size:19px;margin-bottom:6px;}
+  .proforma-title{text-align:right;}
+  .proforma-title .doctype{font-family:'Fraunces',serif;font-size:22px;font-weight:700;}
+  .proforma-parties{display:flex;justify-content:space-between;gap:24px;margin-bottom:20px;}
+  .proforma-parties .block{flex:1;}
+  .proforma-parties .block-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.04em;color:#888;margin-bottom:6px;font-weight:600;}
+  .proforma table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+  .proforma th{background:#F5F6EF;text-align:left;padding:8px 10px;font-size:11px;border-bottom:2px solid #24261F;}
+  .proforma td{padding:8px 10px;border-bottom:1px solid #e5e5df;}
+  .proforma-totals{margin-left:auto;width:260px;}
+  .proforma-totals .r{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;}
+  .proforma-totals .r.total{font-weight:700;font-size:16px;border-top:2px solid #24261F;padding-top:8px;margin-top:4px;}
+  .proforma-terms{margin-top:24px;font-size:11.5px;color:#555;line-height:1.6;border-top:1px dashed #ccc;padding-top:14px;}
+  .proforma-sign{display:flex;justify-content:space-between;margin-top:50px;}
+  .proforma-sign .s{width:200px;text-align:center;font-size:12px;color:#555;border-top:1px solid #999;padding-top:8px;}
+  .chart-tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .chart-tab{padding:7px 14px;border-radius:20px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);}
+  .chart-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .bar-wrap{display:flex;align-items:flex-end;gap:8px;height:220px;padding:10px 4px 0;overflow-x:auto;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:24px;}
+  .bar{width:70%;background:var(--primary);border-radius:4px 4px 0 0;position:relative;min-height:2px;}
+  .bar-val{font-size:10px;color:var(--muted);margin-bottom:4px;white-space:nowrap;}
+  .bar-lbl{font-size:10px;color:var(--muted);margin-top:6px;white-space:nowrap;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:8px;font-size:13.5px;z-index:200;box-shadow:0 6px 20px rgba(0,0,0,0.2);max-width:90vw;text-align:center;}
+  .closing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
+  @media (max-width:880px){
+    .sidebar{display:none;}
+    .content{padding:18px 16px 90px;}
+    .topbar{padding:14px 16px;}
+    .grid.cols-4{grid-template-columns:repeat(2,1fr);}
+    .grid.cols-3{grid-template-columns:repeat(2,1fr);}
+    .grid.cols-2{grid-template-columns:1fr;}
+    .closing-grid{grid-template-columns:1fr;}
+    .form-footer-bar{margin:0 -16px -130px;padding:14px 16px;}
+    .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);z-index:50;padding:6px 4px calc(6px + env(safe-area-inset-bottom));overflow-x:auto;}
+    .bottom-nav .nav-item{flex-direction:column;color:var(--muted);gap:3px;font-size:10.5px;flex:1;min-width:64px;text-align:center;border-radius:8px;padding:6px 4px;}
+    .bottom-nav .nav-item.active{background:var(--primary-dim);color:var(--primary);}
+    .bottom-nav .nav-badge{position:absolute;top:2px;right:10px;margin-left:0;}
+    .user-select-grid{grid-template-columns:1fr 1fr;}
+    .proforma-parties{flex-direction:column;}
+  }
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{display:block !important;position:absolute;top:0;left:0;width:100%;padding:14px;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="printArea"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+/* =========================================================
+   SUPABASE — base de données persistante réelle
+   Configure tes identifiants dans config.js (voir README.md)
+   ========================================================= */
+let sb = null;
+let sbConfigOk = false;
+
+function initSupabase(){
+  const url = window.SUPABASE_URL, key = window.SUPABASE_ANON_KEY;
+  if(typeof window.supabase === 'undefined' || !url || !key || url.indexOf('YOUR-PROJECT')!==-1 || key.indexOf('YOUR-ANON-KEY')!==-1){
+    sbConfigOk = false; return;
+  }
+  sb = window.supabase.createClient(url, key);
+  sbConfigOk = true;
+}
+
+function downloadFile(filename, content, mime){
+  const blob = new Blob(['\ufeff'+content], {type: mime||'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+
+function jclone(x){ return JSON.parse(JSON.stringify(x)); }
+
+const DEFAULTS = {
+  products:[
+    {id:'p1',name:'Babenda',category:'plat',price:1500,stock:30,seuil:5,unit:'portion'},
+    {id:'p2',name:'Riz gras',category:'plat',price:1000,stock:40,seuil:5,unit:'portion'},
+    {id:'p3',name:'Attiéké poisson',category:'plat',price:1750,stock:25,seuil:5,unit:'portion'},
+    {id:'p4',name:'Poulet braisé attiéké',category:'plat',price:2000,stock:20,seuil:5,unit:'portion'},
+    {id:'p5',name:'Riz sauce arachide',category:'plat',price:1200,stock:30,seuil:5,unit:'portion'},
+    {id:'s1',name:'Supplément TO',category:'supplement',price:250,stock:100,seuil:10,unit:'portion'},
+    {id:'s2',name:'Supplément viande',category:'supplement',price:500,stock:60,seuil:10,unit:'portion'},
+    {id:'s3',name:'Supplément sauce',category:'supplement',price:200,stock:80,seuil:10,unit:'portion'},
+    {id:'s4',name:'Supplément poisson',category:'supplement',price:600,stock:40,seuil:10,unit:'portion'},
+    {id:'b1',name:'Jus de bissap',category:'boisson',price:500,stock:50,seuil:10,unit:'verre'},
+    {id:'b2',name:'Eau minérale',category:'boisson',price:300,stock:60,seuil:15,unit:'bouteille'}
+  ],
+  orders:[],
+  users:[
+    {id:'u1',name:'Super Admin',role:'superadmin',pin:'0000'},
+    {id:'u2',name:'Caissière',role:'caissier',pin:'1111'}
+  ],
+  delivery:[
+    {id:'d1',name:'Issa',phone:'70 00 00 01'},
+    {id:'d2',name:'Fatou',phone:'70 00 00 02'}
+  ],
+  settings:{
+    restaurantName:'Mon Restaurant',
+    currency:'FCFA',
+    printFormat:'thermal',
+    proformaValidityDays:15,
+    tvaDefaultPercent:0,
+    zones:['Ouaga 2000','Gounghin','Tampouy','Zone du Bois','Cissin',"Patte d'Oie",'Dapoya','Karpala','Somgandé'],
+    company:{ legalName:'', address:'', phone:'', email:'', ifu:'', rccm:'', bankName:'', bankAccount:'' }
+  }
+};
+
+let DB = { products:[], orders:[], users:[], delivery:[], settings:{} };
+const TABLES = ['products','orders','users','delivery'];
+
+/* ---- CRUD génériques (écrivent dans Supabase si configuré, sinon en mémoire) ---- */
+function uid(p){ return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+async function createDoc(table, obj){
+  let id;
+  if(sb){
+    const { data, error } = await sb.from(table).insert({data: obj}).select().single();
+    if(error){ console.error(error); toast('Erreur de sauvegarde.'); id = uid(table); }
+    else id = data.id;
+  } else { id = uid(table); }
+  DB[table].push({id, ...jclone(obj)});
+  return id;
+}
+async function updateDoc_(table, id, patch){
+  const item = DB[table].find(x=>x.id===id);
+  if(item) Object.assign(item, jclone(patch));
+  if(sb){
+    const merged = item ? jclone(item) : jclone(patch);
+    delete merged.id;
+    const { error } = await sb.from(table).update({data: merged}).eq('id', id);
+    if(error){ console.error(error); toast('Erreur de sauvegarde.'); }
+  }
+}
+async function deleteDocItem(table, id){
+  DB[table] = DB[table].filter(x=>x.id!==id);
+  if(sb){
+    const { error } = await sb.from(table).delete().eq('id', id);
+    if(error){ console.error(error); toast('Erreur de suppression.'); }
+  }
+}
+async function saveSettings(patch){
+  Object.assign(DB.settings, jclone(patch));
+  if(sb){
+    const { error } = await sb.from('settings').upsert({id:'main', data: DB.settings});
+    if(error){ console.error(error); toast('Erreur de sauvegarde.'); }
+  }
+}
+
+/* ---- Chargement initial + temps réel ---- */
+async function fetchTable(table){
+  const { data, error } = await sb.from(table).select('*').order('created_at', {ascending:true});
+  if(error){ console.error(error); toast('Erreur de connexion à la base de données.'); return []; }
+  return data.map(r=>({id:r.id, ...r.data}));
+}
+async function fetchSettings(){
+  const { data, error } = await sb.from('settings').select('*').eq('id','main').maybeSingle();
+  if(error){ console.error(error); return null; }
+  return data ? data.data : null;
+}
+async function seedIfEmpty(){
+  for(const t of ['products','users','delivery']){
+    const { count } = await sb.from(t).select('*', {count:'exact', head:true});
+    if(!count){
+      const rows = DEFAULTS[t].map(d=>{ const {id, ...rest} = d; return {data: rest}; });
+      await sb.from(t).insert(rows);
+    }
+  }
+  const s = await fetchSettings();
+  if(!s){ await sb.from('settings').insert({id:'main', data: DEFAULTS.settings}); }
+}
+async function initialLoadAll(){
+  const [products, orders, users, delivery, settings] = await Promise.all([
+    fetchTable('products'), fetchTable('orders'), fetchTable('users'), fetchTable('delivery'), fetchSettings()
+  ]);
+  DB.products = products; DB.orders = orders; DB.users = users; DB.delivery = delivery;
+  DB.settings = settings || jclone(DEFAULTS.settings);
+  if(!DB.settings.zones) DB.settings.zones = jclone(DEFAULTS.settings.zones);
+  if(!DB.settings.company) DB.settings.company = jclone(DEFAULTS.settings.company);
+}
+function subscribeAll(){
+  TABLES.forEach(t=>{
+    sb.channel('changes-'+t)
+      .on('postgres_changes', {event:'*', schema:'public', table:t}, async ()=>{ DB[t] = await fetchTable(t); renderFromSnapshot(); })
+      .subscribe();
+  });
+  sb.channel('changes-settings')
+    .on('postgres_changes', {event:'*', schema:'public', table:'settings'}, async ()=>{
+      const s = await fetchSettings();
+      if(s){ DB.settings = s; if(!DB.settings.zones) DB.settings.zones=jclone(DEFAULTS.settings.zones); if(!DB.settings.company) DB.settings.company=jclone(DEFAULTS.settings.company); }
+      renderFromSnapshot();
+    })
+    .subscribe();
+}
+
+let initialLoadDone = false;
+function renderFromSnapshot(){
+  if(!initialLoadDone) return;
+  const active = document.activeElement;
+  const content = document.getElementById('content');
+  if(active && content && content.contains(active) && ['INPUT','SELECT','TEXTAREA'].includes(active.tagName)) return;
+  if(document.querySelector('.modal-overlay')) return;
+  render();
+}
+
+/* =========================================================
+   ÉTAT DE L'APPLICATION
+   ========================================================= */
+let state = {
+  user:null, route:'dashboard',
+  loginStep:{ userId:null, pin:'', error:'' },
+  orderDraft:null,
+  reportTab:'jour',
+  orderFilter:{ status:'all', q:'' },
+  salesFilter:{ range:'today' },
+  closingDate: null
+};
+
+function fmtMoney(n){ return Math.round(n||0).toLocaleString('fr-FR').replace(/,/g,' ') + ' ' + (DB.settings.currency||'FCFA'); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){ return new Date(iso).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',year:'numeric'}); }
+function fmtDateTime(iso){ const d=new Date(iso); return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}) + ' à ' + d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2800); }
+function initials(name){ return (name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function isAdminLike(role){ return role==='admin' || role==='superadmin'; }
+function roleLabel(role){ return role==='superadmin' ? 'Super Admin' : role==='admin' ? 'Admin' : 'Caissier(ère)'; }
+function countSuperadmins(){ return DB.users.filter(u=>u.role==='superadmin').length; }
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+const ICONS = {
+  dashboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+  orders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16l-1.5 10a2 2 0 0 1-2 1.7H7.5a2 2 0 0 1-2-1.7L4 4Z"/><path d="M9 9v4M15 9v4"/></svg>',
+  stock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>',
+  sales:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19h16"/><path d="M7 15l3-4 3 2 4-6"/></svg>',
+  reports:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 21V10M12 21V4M19 21v-7"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>',
+  printer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M6 17v4h12v-4"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg>',
+  truck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="1" y="6" width="14" height="11"/><path d="M15 10h4l3 3v4h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/></svg>',
+  download:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg>'
+};
+
+const ORDER_TYPE_LABELS = { sur_place:'Sur place', emporter:'À emporter', livraison:'Livraison' };
+const PAYMENT_METHOD_LABELS = { especes:'Espèces', orange_money:'Orange Money', moov_money:'Moov Money', autre:'Autre' };
+
+function offlineBanner(){
+  return sb ? '' : `<div class="offline-banner">⚠️ Base de données non connectée — vérifie tes identifiants Supabase dans config.js (voir README.md). Les données ne seront pas sauvegardées tant que ce n'est pas configuré.</div>`;
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+function navItemsFor(role){
+  const base = [
+    {r:'dashboard', label:'Tableau de bord', icon:'dashboard'},
+    {r:'orders', label:'Commandes', icon:'orders'},
+    {r:'sales', label:'Ventes & factures', icon:'sales'}
+  ];
+  if(isAdminLike(role)){
+    base.splice(2,0,{r:'stock', label:'Stock', icon:'stock'});
+    base.push({r:'reports', label:'Rapports', icon:'reports'});
+    base.push({r:'settings', label:'Paramètres', icon:'settings'});
+  }
+  return base;
+}
+
+/* =========================================================
+   RENDU PRINCIPAL
+   ========================================================= */
+function render(){
+  const app = document.getElementById('app');
+  if(!state.user){ app.innerHTML = offlineBanner() + renderLogin(); attachLoginEvents(); return; }
+
+  const items = navItemsFor(state.user.role);
+  const pageTitles = { dashboard:'Tableau de bord', orders:'Commandes', stock:'Stock', sales:'Ventes & factures', reports:'Rapports', settings:'Paramètres' };
+  const activeCount = activeOrders().length;
+  const lowStockCount = DB.products.filter(p=>p.stock<=p.seuil).length;
+
+  app.innerHTML = `
+    ${offlineBanner()}
+    <div class="app-shell">
+      <div class="sidebar">
+        <div class="brand">${escapeHtml(DB.settings.restaurantName||'Mon Restaurant')}</div>
+        <div class="brand-sub">Gestion &amp; commandes</div>
+        ${items.map(it=>`
+          <div class="nav-item ${state.route===it.r?'active':''}" data-action="nav" data-route="${it.r}">
+            ${ICONS[it.icon]} <span>${it.label}</span>
+            ${it.r==='orders' && activeCount>0 ? `<span class="nav-badge">${activeCount}</span>`:''}
+            ${it.r==='stock' && lowStockCount>0 ? `<span class="nav-badge">${lowStockCount}</span>`:''}
+          </div>`).join('')}
+        <div class="sidebar-foot">
+          <div class="user-pill">
+            <div class="user-avatar">${initials(state.user.name)}</div>
+            <div>
+              <div style="font-weight:600;">${escapeHtml(state.user.name)}</div>
+              <div style="font-size:11px;color:#B9C9BE;">${roleLabel(state.user.role)}</div>
+            </div>
+          </div>
+          <button class="logout-btn" data-action="logout">Se déconnecter</button>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="topbar">
+          <div>
+            <h1>${pageTitles[state.route]}</h1>
+            <div class="date">${new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+          </div>
+          ${state.route==='orders' && !state.orderDraft ? `<button class="btn accent" data-action="new-order">${ICONS.plus}Nouvelle commande</button>` : ''}
+        </div>
+        <div class="content" id="content">${renderRoute()}</div>
+      </div>
+
+      <div class="bottom-nav">
+        ${items.map(it=>`
+          <div class="nav-item ${state.route===it.r?'active':''}" data-action="nav" data-route="${it.r}">
+            ${ICONS[it.icon]} <span>${it.label.split(' ')[0]}</span>
+            ${it.r==='orders' && activeCount>0 ? `<span class="nav-badge">${activeCount}</span>`:''}
+            ${it.r==='stock' && lowStockCount>0 ? `<span class="nav-badge">${lowStockCount}</span>`:''}
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+  attachGlobalEvents();
+}
+
+function renderRoute(){
+  switch(state.route){
+    case 'dashboard': return renderDashboard();
+    case 'orders': return state.orderDraft ? renderOrderForm() : renderOrders();
+    case 'stock': return renderStock();
+    case 'sales': return renderSales();
+    case 'reports': return renderReports();
+    case 'settings': return renderSettings();
+    default: return '';
+  }
+}
+
+/* =========================================================
+   CONNEXION
+   ========================================================= */
+function renderLogin(){
+  const step = state.loginStep;
+  const chosen = DB.users.find(u=>u.id===step.userId);
+  return `
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">${escapeHtml(DB.settings.restaurantName||'Mon Restaurant')}</div>
+      <div class="login-sub">${chosen? 'Entre ton code PIN' : 'Choisis ton profil pour continuer'}</div>
+      ${!chosen ? `
+        <div class="user-select-grid">
+          ${DB.users.map(u=>`
+            <div class="user-select-btn" data-action="pick-user" data-id="${u.id}">
+              <div class="ua">${initials(u.name)}</div>
+              <div class="un">${escapeHtml(u.name)}</div>
+              <div class="ur">${roleLabel(u.role)}</div>
+            </div>`).join('')}
+        </div>
+      ` : `
+        <div style="text-align:center;margin-bottom:6px;">
+          <div class="user-select-btn chosen" style="display:inline-block;padding:10px 18px;"><div class="un">${escapeHtml(chosen.name)}</div></div>
+        </div>
+        <div class="pin-dots">${[0,1,2,3].map(i=>`<div class="pin-dot ${step.pin.length>i?'filled':''}"></div>`).join('')}</div>
+        <div class="pin-pad">
+          ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="pin-key" data-action="pin-key" data-k="${n}">${n}</button>`).join('')}
+          <button class="pin-key" data-action="pin-back-user" style="font-size:13px;">Retour</button>
+          <button class="pin-key" data-action="pin-key" data-k="0">0</button>
+          <button class="pin-key" data-action="pin-clear" style="font-size:13px;">Effacer</button>
+        </div>
+        <div class="login-error">${step.error}</div>
+      `}
+    </div>
+  </div>`;
+}
+function attachLoginEvents(){
+  document.querySelectorAll('[data-action="pick-user"]').forEach(el=>{ el.onclick = ()=>{ state.loginStep = {userId:el.dataset.id, pin:'', error:''}; render(); }; });
+  document.querySelectorAll('[data-action="pin-key"]').forEach(el=>{
+    el.onclick = ()=>{
+      if(state.loginStep.pin.length>=4) return;
+      state.loginStep.pin += el.dataset.k;
+      if(state.loginStep.pin.length===4){
+        const u = DB.users.find(x=>x.id===state.loginStep.userId);
+        if(u && u.pin===state.loginStep.pin){ state.user=u; state.route='dashboard'; state.loginStep={userId:null,pin:'',error:''}; render(); return; }
+        else{ state.loginStep.error='Code PIN incorrect, réessaie.'; state.loginStep.pin=''; }
+      }
+      render();
+    };
+  });
+  const back = document.querySelector('[data-action="pin-back-user"]');
+  if(back) back.onclick = ()=>{ state.loginStep={userId:null,pin:'',error:''}; render(); };
+  const clr = document.querySelector('[data-action="pin-clear"]');
+  if(clr) clr.onclick = ()=>{ state.loginStep.pin=''; render(); };
+}
+
+/* =========================================================
+   ÉVÉNEMENTS GLOBAUX
+   ========================================================= */
+function attachGlobalEvents(){
+  document.querySelectorAll('[data-action="nav"]').forEach(el=>{ el.onclick = ()=>{ state.route = el.dataset.route; state.orderDraft=null; render(); }; });
+  const lo = document.querySelector('[data-action="logout"]'); if(lo) lo.onclick = ()=>{ state.user=null; render(); };
+  const no = document.querySelector('[data-action="new-order"]'); if(no) no.onclick = ()=> startNewOrder();
+  bindRouteEvents();
+}
+function bindRouteEvents(){
+  if(state.route==='orders') state.orderDraft ? bindOrderFormEvents() : bindOrdersEvents();
+  if(state.route==='stock') bindStockEvents();
+  if(state.route==='sales') bindSalesEvents();
+  if(state.route==='reports') bindReportsEvents();
+  if(state.route==='settings') bindSettingsEvents();
+  if(state.route==='dashboard') bindDashboardEvents();
+}
+function renderPartial(){ document.getElementById('content').innerHTML = renderRoute(); bindRouteEvents(); refreshBadgesOnly(); }
+function refreshBadgesOnly(){
+  const activeCount = activeOrders().length;
+  const lowStockCount = DB.products.filter(p=>p.stock<=p.seuil).length;
+  document.querySelectorAll('[data-action="nav"][data-route="orders"] .nav-badge').forEach(b=>b.remove());
+  document.querySelectorAll('[data-action="nav"][data-route="stock"] .nav-badge').forEach(b=>b.remove());
+  if(activeCount>0) document.querySelectorAll('[data-action="nav"][data-route="orders"]').forEach(el=>el.insertAdjacentHTML('beforeend', `<span class="nav-badge">${activeCount}</span>`));
+  if(lowStockCount>0) document.querySelectorAll('[data-action="nav"][data-route="stock"]').forEach(el=>el.insertAdjacentHTML('beforeend', `<span class="nav-badge">${lowStockCount}</span>`));
+}
+
+/* =========================================================
+   TABLEAU DE BORD
+   ========================================================= */
+function activeOrders(){ return DB.orders.filter(o=>!['livree','servie','annulee'].includes(o.status)); }
+function isRevenueOrder(o){ return o.status!=='annulee'; }
+function sumCA(orders, fromDate, toDate){ return orders.filter(o=>isRevenueOrder(o) && o.createdAt.slice(0,10)>=fromDate && o.createdAt.slice(0,10)<=toDate).reduce((s,o)=>s+o.total,0); }
+function dateNDaysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
+function startOfWeekISO(){ const d=new Date(); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); return d.toISOString().slice(0,10); }
+function startOfMonthISO(){ const d=new Date(); d.setDate(1); return d.toISOString().slice(0,10); }
+
+function renderDashboard(){
+  const today = todayISO();
+  const caJour = sumCA(DB.orders, today, today);
+  const caSemaine = sumCA(DB.orders, startOfWeekISO(), today);
+  const caMois = sumCA(DB.orders, startOfMonthISO(), today);
+  const enCours = activeOrders();
+  const lowStock = DB.products.filter(p=>p.stock<=p.seuil);
+  const impayees = DB.orders.filter(o=>o.paymentStatus!=='paye' && o.status!=='annulee');
+  const ordersToday = DB.orders.filter(o=>o.createdAt.slice(0,10)===today && isRevenueOrder(o));
+  const panierMoyen = ordersToday.length ? caJour/ordersToday.length : 0;
+
+  return `
+    <div class="grid cols-4">
+      <div class="card stat-card"><div class="stat-label">CA aujourd'hui</div><div class="stat-value">${fmtMoney(caJour)}</div><div class="stat-note">${ordersToday.length} commande(s) · panier moyen ${fmtMoney(panierMoyen)}</div></div>
+      <div class="card stat-card"><div class="stat-label">CA cette semaine</div><div class="stat-value">${fmtMoney(caSemaine)}</div><div class="stat-note">depuis lundi</div></div>
+      <div class="card stat-card"><div class="stat-label">CA ce mois</div><div class="stat-value">${fmtMoney(caMois)}</div><div class="stat-note">depuis le 1er</div></div>
+      <div class="card stat-card"><div class="stat-label">Commandes en cours</div><div class="stat-value" style="color:var(--primary);">${enCours.length}</div><div class="stat-note">à préparer / livrer</div></div>
+    </div>
+
+    <h2 class="section-title">Commandes en cours</h2>
+    ${activeOrdersSectionHtml(enCours)}
+
+    ${isAdminLike(state.user.role) ? '<h2 class="section-title">Alertes de stock</h2>' + lowStockSectionHtml(lowStock) : ''}
+
+    ${impayees.length>0 ? '<h2 class="section-title">Paiements en attente</h2>' + unpaidSectionHtml(impayees) : ''}
+  `;
+}
+function activeOrdersSectionHtml(enCours){
+  if(enCours.length===0) return emptyState('Aucune commande en cours','Les nouvelles commandes apparaîtront ici.');
+  const rows = enCours.slice(0,8).map(o=>`
+        <tr>
+          <td><strong>${escapeHtml(o.clientName)}</strong><br><span style="color:var(--muted);font-size:12px;">${o.orderType==='livraison'? '🚚 '+escapeHtml(o.zone||'') : ORDER_TYPE_LABELS[o.orderType]}</span></td>
+          <td>${o.items.map(i=>escapeHtml(i.name)).join(', ')}</td>
+          <td>${fmtMoney(o.total)}</td>
+          <td>${statusTag(o.status)}</td>
+          <td>${paymentTag(o.paymentStatus)}</td>
+          <td><button class="btn ghost sm" data-action="open-order" data-id="${o.id}">Voir</button></td>
+        </tr>`).join('');
+  return `<div class="table-wrap"><table>
+      <thead><tr><th>Client</th><th>Articles</th><th>Total</th><th>Statut</th><th>Paiement</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+function lowStockSectionHtml(lowStock){
+  if(lowStock.length===0) return emptyState('Aucune alerte','Tous les produits sont au-dessus du seuil.');
+  const rows = lowStock.map(p=>`
+        <tr><td>${escapeHtml(p.name)}</td><td><span class="tag annulee">${p.stock} ${escapeHtml(p.unit)}</span></td><td>${p.seuil} ${escapeHtml(p.unit)}</td>
+        <td><button class="btn ghost sm" data-action="goto-stock">Gérer</button></td></tr>`).join('');
+  return `<div class="table-wrap"><table>
+      <thead><tr><th>Produit</th><th>Stock restant</th><th>Seuil d'alerte</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+function unpaidSectionHtml(impayees){
+  const rows = impayees.slice(0,6).map(o=>`
+        <tr><td>${escapeHtml(o.clientName)}</td><td>${fmtMoney(o.total)}</td><td>${statusTag(o.status)}</td>
+        <td><button class="btn ghost sm" data-action="open-order" data-id="${o.id}">Voir</button></td></tr>`).join('');
+  return `<div class="table-wrap"><table>
+      <thead><tr><th>Client</th><th>Total</th><th>Statut commande</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+function emptyState(title, sub){ return `<div class="empty-state"><div class="display">${title}</div><div>${sub}</div></div>`; }
+function statusTag(s){
+  const map = {en_attente:['attente','En attente'], en_preparation:['preparation','En préparation'], en_livraison:['livraison','En livraison'], servie:['terminee','Servie'], livree:['terminee','Livrée'], annulee:['annulee','Annulée']};
+  const m = map[s]||['attente',s];
+  return `<span class="tag ${m[0]}">${m[1]}</span>`;
+}
+function paymentTag(p){ return p==='paye' ? `<span class="tag paye">Payé</span>` : `<span class="tag impaye">${p==='a_la_livraison'?'À la livraison':'Non payé'}</span>`; }
+function bindDashboardEvents(){
+  document.querySelectorAll('[data-action="open-order"]').forEach(el=>{ el.onclick = ()=>{ state.route='orders'; state.orderDraft=null; render(); setTimeout(()=>showOrderDetail(el.dataset.id),0); }; });
+  const gs = document.querySelector('[data-action="goto-stock"]'); if(gs) gs.onclick = ()=>{ state.route='stock'; render(); };
+}
+
+/* =========================================================
+   COMMANDES — liste
+   ========================================================= */
+function renderOrders(){
+  let list = [...DB.orders].sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  if(state.orderFilter.status!=='all') list = list.filter(o=>o.status===state.orderFilter.status);
+  if(state.orderFilter.q){ const q=state.orderFilter.q.toLowerCase(); list = list.filter(o=>o.clientName.toLowerCase().includes(q) || (o.clientPhone||'').includes(q)); }
+  return `
+    <div class="filters">
+      <input class="search-input" placeholder="Rechercher un client ou un n° de tél..." id="orderSearch" value="${escapeHtml(state.orderFilter.q)}">
+      <select id="orderStatusFilter">
+        <option value="all">Tous les statuts</option>
+        <option value="en_attente">En attente</option>
+        <option value="en_preparation">En préparation</option>
+        <option value="en_livraison">En livraison</option>
+        <option value="servie">Servie</option>
+        <option value="livree">Livrée</option>
+        <option value="annulee">Annulée</option>
+      </select>
+    </div>
+    ${list.length===0 ? emptyState('Aucune commande', 'Clique sur « Nouvelle commande » en haut pour en créer une.') : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>N°</th><th>Client</th><th>Articles</th><th>Type</th><th>Total</th><th>Paiement</th><th>Statut</th><th></th></tr></thead>
+      <tbody>
+      ${list.map(o=>`
+        <tr>
+          <td style="font-size:12.5px;color:var(--muted);">${o.invoiceNumber}<br>${fmtDateTime(o.createdAt)}</td>
+          <td><strong>${escapeHtml(o.clientName)}</strong>${o.clientPhone?`<br><span style="color:var(--muted);font-size:12px;">${escapeHtml(o.clientPhone)}</span>`:''}</td>
+          <td>${o.items.map(i=>`${i.qty}× ${escapeHtml(i.name)}`).join(', ')}</td>
+          <td>${o.orderType==='livraison'? `${ICONS.truck} ${escapeHtml(o.zone||'—')}${o.deliveryPersonName? '<br><span style="color:var(--muted);font-size:12px;">'+escapeHtml(o.deliveryPersonName)+'</span>':''}` : ORDER_TYPE_LABELS[o.orderType]}</td>
+          <td>${fmtMoney(o.total)}</td>
+          <td>${paymentTag(o.paymentStatus)}</td>
+          <td>${statusTag(o.status)}</td>
+          <td><button class="btn ghost sm" data-action="open-order" data-id="${o.id}">Détails</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>`}
+  `;
+}
+function bindOrdersEvents(){
+  const s = document.getElementById('orderSearch'); if(s) s.oninput = ()=>{ state.orderFilter.q = s.value; renderPartial(); };
+  const f = document.getElementById('orderStatusFilter'); if(f){ f.value = state.orderFilter.status; f.onchange = ()=>{ state.orderFilter.status=f.value; renderPartial(); }; }
+  document.querySelectorAll('[data-action="open-order"]').forEach(el=>{ el.onclick = ()=> showOrderDetail(el.dataset.id); });
+}
+
+/* Détail commande (modale) */
+function showOrderDetail(orderId){
+  const o = DB.orders.find(x=>x.id===orderId);
+  if(!o) return;
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:500px;">
+      <h3>${escapeHtml(o.clientName)} <span style="font-weight:400;color:var(--muted);font-size:13px;">— ${o.invoiceNumber}</span></h3>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">${fmtDateTime(o.createdAt)} · pris par ${escapeHtml(o.createdBy||'—')}</div>
+      <div class="table-wrap" style="margin-bottom:16px;">
+        <table><thead><tr><th>Article</th><th>Qté</th><th>Prix</th></tr></thead>
+          <tbody>
+          ${o.items.map(i=>`
+            <tr><td>${escapeHtml(i.name)}${i.supplements.length? '<div class="supp-note" style="font-size:11.5px;color:var(--muted);">+ '+i.supplements.map(s=>escapeHtml(s.name)).join(', ')+'</div>':''}</td>
+            <td>${i.qty}</td><td>${fmtMoney(i.lineTotal)}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${o.discount>0 ? `<div style="font-size:13px;color:var(--muted);margin-bottom:10px;display:flex;justify-content:space-between;"><span>Remise appliquée</span><strong>- ${fmtMoney(o.discount)}</strong></div>`:''}
+      <div class="row" style="margin-bottom:14px;">
+        <div class="field" style="margin-bottom:0;"><label>Type de commande</label><div>${o.orderType==='livraison'? escapeHtml(o.zone||'—')+' · '+escapeHtml(o.deliveryPersonName||'—') : ORDER_TYPE_LABELS[o.orderType]}</div></div>
+        <div class="field" style="margin-bottom:0;"><label>Paiement</label><div>${paymentTag(o.paymentStatus)} <span style="color:var(--muted);font-size:12.5px;">${PAYMENT_METHOD_LABELS[o.paymentMethod]||''}</span></div></div>
+      </div>
+      ${o.notes ? `<div class="field"><label>Notes</label><div style="font-size:13.5px;background:#FBFBF7;border:1px solid var(--line);border-radius:6px;padding:8px 10px;">${escapeHtml(o.notes)}</div></div>` : ''}
+      <div class="field">
+        <label>Statut de la commande</label>
+        <select id="statusSelect">
+          <option value="en_attente" ${o.status==='en_attente'?'selected':''}>En attente</option>
+          <option value="en_preparation" ${o.status==='en_preparation'?'selected':''}>En préparation</option>
+          ${o.orderType==='livraison'? `<option value="en_livraison" ${o.status==='en_livraison'?'selected':''}>En livraison</option>
+          <option value="livree" ${o.status==='livree'?'selected':''}>Livrée</option>` : `<option value="servie" ${o.status==='servie'?'selected':''}>Servie</option>`}
+          <option value="annulee" ${o.status==='annulee'?'selected':''}>Annulée</option>
+        </select>
+      </div>
+      ${o.paymentStatus!=='paye' ? `<button class="btn accent" style="width:100%;margin-bottom:10px;" data-action="mark-paid" data-id="${o.id}">Marquer comme payée</button>` : ''}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn ghost" style="flex:1;" data-action="print-ticket" data-id="${o.id}">${ICONS.printer} Ticket</button>
+        <button class="btn ghost" style="flex:1;" data-action="open-proforma" data-id="${o.id}">${ICONS.doc} Proforma</button>
+        ${isAdminLike(state.user.role) ? `<button class="btn danger" data-action="delete-order" data-id="${o.id}">${ICONS.trash}</button>` : ''}
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" data-action="close-modal">Fermer</button>
+        <button class="btn" data-action="save-order-status" data-id="${o.id}">Enregistrer</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.onclick = (e)=>{ if(e.target===overlay) overlay.remove(); };
+  overlay.querySelector('[data-action="close-modal"]').onclick = ()=>overlay.remove();
+  overlay.querySelector('[data-action="save-order-status"]').onclick = async ()=>{
+    await updateDoc_('orders', o.id, {status: overlay.querySelector('#statusSelect').value});
+    toast('Commande mise à jour.'); overlay.remove(); renderPartial();
+  };
+  const mp = overlay.querySelector('[data-action="mark-paid"]');
+  if(mp) mp.onclick = async ()=>{ await updateDoc_('orders', o.id, {paymentStatus:'paye'}); toast('Paiement enregistré.'); overlay.remove(); renderPartial(); };
+  overlay.querySelector('[data-action="print-ticket"]').onclick = ()=> printTicket(o.id);
+  overlay.querySelector('[data-action="open-proforma"]').onclick = ()=>{ overlay.remove(); openProformaModal(o.id); };
+  const del = overlay.querySelector('[data-action="delete-order"]');
+  if(del) del.onclick = async ()=>{ if(confirm('Supprimer définitivement cette commande ?')){ await deleteDocItem('orders', o.id); toast('Commande supprimée.'); overlay.remove(); renderPartial(); } };
+}
+
+/* =========================================================
+   COMMANDES — formulaire de création
+   ========================================================= */
+function startNewOrder(){
+  state.orderDraft = { clientName:'', clientPhone:'', orderType:'sur_place', zone:'', deliveryPersonId:'', paymentStatus:'paye', paymentMethod:'especes', discount:0, notes:'', items:[ blankItem() ] };
+  state.route='orders'; render();
+}
+function blankItem(){ return { productId:'', qty:1, supplementIds:[] }; }
+
+function renderOrderForm(){
+  const d = state.orderDraft;
+  const plats = DB.products.filter(p=>p.category==='plat'||p.category==='boisson');
+  const supplements = DB.products.filter(p=>p.category==='supplement');
+  let subtotal = 0;
+
+  const itemsHtml = d.items.map((item, idx)=>{
+    const prod = DB.products.find(p=>p.id===item.productId);
+    const suppTotal = item.supplementIds.reduce((s,id)=>{ const sp=DB.products.find(p=>p.id===id); return s+(sp?sp.price:0); },0);
+    const lineTotal = prod ? (prod.price + suppTotal) * item.qty : 0;
+    subtotal += lineTotal;
+    return `
+    <div class="item-line">
+      <div class="item-line-head"><span class="num">Plat ${idx+1}</span>${d.items.length>1? `<button class="icon-btn" data-action="remove-item" data-idx="${idx}">${ICONS.trash}</button>`:''}</div>
+      <div class="row">
+        <div class="field"><label>Plat / boisson</label>
+          <select data-action="set-item-product" data-idx="${idx}">
+            <option value="">— Choisir —</option>
+            ${plats.map(p=>`<option value="${p.id}" ${item.productId===p.id?'selected':''}>${escapeHtml(p.name)} (${fmtMoney(p.price)})</option>`).join('')}
+          </select>
+        </div>
+        <div class="field" style="max-width:100px;"><label>Qté</label><input type="number" min="1" value="${item.qty}" data-action="set-item-qty" data-idx="${idx}"></div>
+      </div>
+      <label>Suppléments</label>
+      <div class="supp-list">
+        ${supplements.map(sp=>`
+          <label class="supp-chip ${item.supplementIds.includes(sp.id)?'on':''}">
+            <input type="checkbox" data-action="toggle-supp" data-idx="${idx}" data-sid="${sp.id}" ${item.supplementIds.includes(sp.id)?'checked':''}>
+            ${escapeHtml(sp.name)} (+${fmtMoney(sp.price)})
+          </label>`).join('')}
+      </div>
+      <div class="line-total">${prod? fmtMoney(lineTotal) : '—'}</div>
+    </div>`;
+  }).join('');
+
+  const discount = Math.min(d.discount||0, subtotal);
+  const total = Math.max(0, subtotal - discount);
+
+  return `
+    <div style="max-width:640px;">
+      <div class="row">
+        <div class="field"><label>Nom du client</label><input type="text" id="clientName" placeholder="Ex : Awa Kaboré" value="${escapeHtml(d.clientName)}"></div>
+        <div class="field"><label>Téléphone</label><input type="tel" id="clientPhone" placeholder="Ex : 70 12 34 56" value="${escapeHtml(d.clientPhone)}"></div>
+      </div>
+
+      <h2 class="section-title">Articles commandés</h2>
+      ${itemsHtml}
+      <button class="btn ghost" data-action="add-item" style="margin-bottom:24px;">${ICONS.plus} Ajouter un plat</button>
+
+      <h2 class="section-title">Type de commande</h2>
+      <div class="type-toggle">
+        <div class="type-btn ${d.orderType==='sur_place'?'on':''}" data-action="set-type" data-type="sur_place">Sur place</div>
+        <div class="type-btn ${d.orderType==='emporter'?'on':''}" data-action="set-type" data-type="emporter">À emporter</div>
+        <div class="type-btn ${d.orderType==='livraison'?'on':''}" data-action="set-type" data-type="livraison">Livraison</div>
+      </div>
+      ${d.orderType==='livraison'? `
+      <div class="row">
+        <div class="field"><label>Quartier / zone</label>
+          <select id="zoneSelect"><option value="">— Choisir —</option>
+          ${DB.settings.zones.map(z=>`<option value="${escapeHtml(z)}" ${d.zone===z?'selected':''}>${escapeHtml(z)}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label>Livreur</label>
+          <select id="deliveryPersonSelect"><option value="">— Choisir —</option>
+          ${DB.delivery.map(p=>`<option value="${p.id}" ${d.deliveryPersonId===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('')}</select>
+        </div>
+      </div>` : ''}
+
+      <h2 class="section-title">Paiement</h2>
+      <div class="row">
+        <div class="field"><label>Statut</label>
+          <select id="paymentSelect">
+            <option value="paye" ${d.paymentStatus==='paye'?'selected':''}>Payé à la commande</option>
+            <option value="a_la_livraison" ${d.paymentStatus==='a_la_livraison'?'selected':''}>Paiement à la livraison (non payé)</option>
+          </select>
+        </div>
+        <div class="field"><label>Méthode</label>
+          <select id="methodSelect">
+            <option value="especes" ${d.paymentMethod==='especes'?'selected':''}>Espèces</option>
+            <option value="orange_money" ${d.paymentMethod==='orange_money'?'selected':''}>Orange Money</option>
+            <option value="moov_money" ${d.paymentMethod==='moov_money'?'selected':''}>Moov Money</option>
+            <option value="autre" ${d.paymentMethod==='autre'?'selected':''}>Autre</option>
+          </select>
+        </div>
+      </div>
+
+      <h2 class="section-title">Remise &amp; notes</h2>
+      <div class="row">
+        <div class="field"><label>Remise (${DB.settings.currency})</label><input type="number" min="0" id="discountInput" value="${d.discount||0}"></div>
+        <div class="field"><label>Notes / instructions (optionnel)</label><input type="text" id="notesInput" placeholder="Ex : sans piment" value="${escapeHtml(d.notes||'')}"></div>
+      </div>
+      <div style="height:90px;"></div>
+    </div>
+
+    <div class="form-footer-bar">
+      <button class="btn ghost" data-action="cancel-order">Annuler</button>
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        ${discount>0? `<div style="font-size:12.5px;color:var(--muted);">Sous-total ${fmtMoney(subtotal)} − Remise ${fmtMoney(discount)}</div>`:''}
+        <div class="total-display"><span>Total</span>${fmtMoney(total)}</div>
+        <button class="btn accent" data-action="save-order">Enregistrer la commande</button>
+      </div>
+    </div>
+  `;
+}
+
+function bindOrderFormEvents(){
+  const d = state.orderDraft;
+  const cn = document.getElementById('clientName'); if(cn) cn.oninput = ()=> d.clientName = cn.value;
+  const cp = document.getElementById('clientPhone'); if(cp) cp.oninput = ()=> d.clientPhone = cp.value;
+  document.querySelectorAll('[data-action="set-type"]').forEach(el=>{ el.onclick = ()=>{ d.orderType = el.dataset.type; renderPartial(); }; });
+  const zs = document.getElementById('zoneSelect'); if(zs) zs.onchange = ()=> d.zone = zs.value;
+  const dps = document.getElementById('deliveryPersonSelect'); if(dps) dps.onchange = ()=> d.deliveryPersonId = dps.value;
+  const ps = document.getElementById('paymentSelect'); if(ps) ps.onchange = ()=> d.paymentStatus = ps.value;
+  const ms = document.getElementById('methodSelect'); if(ms) ms.onchange = ()=> d.paymentMethod = ms.value;
+  const di = document.getElementById('discountInput'); if(di) di.oninput = ()=>{ d.discount = parseFloat(di.value)||0; renderPartial(); };
+  const ni = document.getElementById('notesInput'); if(ni) ni.oninput = ()=> d.notes = ni.value;
+
+  document.querySelectorAll('[data-action="set-item-product"]').forEach(el=>{ el.onchange = ()=>{ d.items[+el.dataset.idx].productId = el.value; renderPartial(); }; });
+  document.querySelectorAll('[data-action="set-item-qty"]').forEach(el=>{ el.oninput = ()=>{ d.items[+el.dataset.idx].qty = Math.max(1, parseInt(el.value)||1); renderPartial(); }; });
+  document.querySelectorAll('[data-action="toggle-supp"]').forEach(el=>{
+    el.onchange = ()=>{
+      const item = d.items[+el.dataset.idx]; const sid = el.dataset.sid;
+      if(item.supplementIds.includes(sid)) item.supplementIds = item.supplementIds.filter(x=>x!==sid); else item.supplementIds.push(sid);
+      renderPartial();
+    };
+  });
+  document.querySelectorAll('[data-action="remove-item"]').forEach(el=>{ el.onclick = ()=>{ d.items.splice(+el.dataset.idx,1); renderPartial(); }; });
+  const addItem = document.querySelector('[data-action="add-item"]'); if(addItem) addItem.onclick = ()=>{ d.items.push(blankItem()); renderPartial(); };
+  const cancel = document.querySelector('[data-action="cancel-order"]'); if(cancel) cancel.onclick = ()=>{ state.orderDraft=null; render(); };
+  const save = document.querySelector('[data-action="save-order"]'); if(save) save.onclick = saveOrder;
+}
+
+async function saveOrder(){
+  const d = state.orderDraft;
+  if(!d.clientName.trim()){ toast('Indique le nom du client.'); return; }
+  const validItems = d.items.filter(i=>i.productId);
+  if(validItems.length===0){ toast('Ajoute au moins un plat.'); return; }
+  if(d.orderType==='livraison' && !d.zone){ toast('Choisis un quartier de livraison.'); return; }
+
+  const items = validItems.map(i=>{
+    const prod = DB.products.find(p=>p.id===i.productId);
+    const supplements = i.supplementIds.map(sid=>{ const sp=DB.products.find(p=>p.id===sid); return {productId:sid, name:sp.name, price:sp.price}; });
+    const unitTotal = prod.price + supplements.reduce((s,x)=>s+x.price,0);
+    return { productId:prod.id, name:prod.name, qty:i.qty, unitPrice:prod.price, supplements, lineTotal: unitTotal*i.qty };
+  });
+  const subtotal = items.reduce((s,i)=>s+i.lineTotal,0);
+  const discount = Math.min(d.discount||0, subtotal);
+  const total = Math.max(0, subtotal - discount);
+  const deliveryPerson = DB.delivery.find(p=>p.id===d.deliveryPersonId);
+
+  const order = {
+    invoiceNumber: 'F-' + Date.now().toString().slice(-8),
+    createdAt: new Date().toISOString(),
+    clientName: d.clientName.trim(), clientPhone: d.clientPhone.trim(),
+    items, subtotal, discount, total,
+    orderType: d.orderType,
+    zone: d.orderType==='livraison' ? d.zone : '',
+    deliveryPersonId: d.orderType==='livraison' ? d.deliveryPersonId : '',
+    deliveryPersonName: d.orderType==='livraison' && deliveryPerson ? deliveryPerson.name : '',
+    paymentStatus: d.paymentStatus, paymentMethod: d.paymentMethod,
+    notes: d.notes||'', status: 'en_attente', createdBy: state.user.name
+  };
+
+  const orderId = await createDoc('orders', order);
+
+  for(const i of items){
+    const p = DB.products.find(x=>x.id===i.productId);
+    if(p) await updateDoc_('products', p.id, {stock: Math.max(0, p.stock - i.qty)});
+    for(const s of i.supplements){
+      const sp = DB.products.find(x=>x.id===s.productId);
+      if(sp) await updateDoc_('products', sp.id, {stock: Math.max(0, sp.stock - i.qty)});
+    }
+  }
+
+  state.orderDraft = null;
+  toast('Commande enregistrée !');
+  render();
+  const low = DB.products.filter(p=>p.stock<=p.seuil);
+  if(low.length>0 && isAdminLike(state.user.role)) toast(low.length+" produit(s) sous le seuil d'alerte.");
+}
+
+/* =========================================================
+   IMPRESSION — Ticket thermique
+   ========================================================= */
+function setPrintMode(mode){
+  const css = mode==='thermal'
+    ? `@page{ size:80mm auto; margin:4mm 3mm; } @media print{ .invoice{ width:100%!important; font-size:12px; } }`
+    : `@page{ size:A4; margin:14mm; }`;
+  document.getElementById('dynamicPrintStyle').textContent = css;
+}
+function printTicket(orderId){
+  const o = DB.orders.find(x=>x.id===orderId);
+  if(!o) return;
+  setPrintMode(DB.settings.printFormat==='a4' ? 'a4' : 'thermal');
+  const html = `
+    <div class="invoice">
+      <div class="invoice-head">
+        <h2>${escapeHtml(DB.settings.restaurantName||'Mon Restaurant')}</h2>
+        <div class="invoice-meta">
+          Facture ${o.invoiceNumber}<br>${fmtDateTime(o.createdAt)}<br>
+          Client : ${escapeHtml(o.clientName)} ${o.clientPhone? '· '+escapeHtml(o.clientPhone):''}<br>
+          ${o.orderType==='livraison'? 'Livraison : '+escapeHtml(o.zone||'—')+(o.deliveryPersonName? ' · '+escapeHtml(o.deliveryPersonName):'') : ORDER_TYPE_LABELS[o.orderType]}
+        </div>
+      </div>
+      <table><thead><tr><th>Article</th><th>Qté</th><th style="text-align:right;">Total</th></tr></thead>
+        <tbody>
+        ${o.items.map(i=>`
+          <tr><td>${escapeHtml(i.name)}${i.supplements.length? '<div class="supp-note">+ '+i.supplements.map(s=>escapeHtml(s.name)).join(', ')+'</div>':''}</td>
+          <td>${i.qty}</td><td style="text-align:right;">${fmtMoney(i.lineTotal)}</td></tr>`).join('')}
+        </tbody>
+      </table>
+      ${o.discount>0? `<div class="invoice-sub-row"><span>Sous-total</span><span>${fmtMoney(o.subtotal)}</span></div><div class="invoice-sub-row"><span>Remise</span><span>- ${fmtMoney(o.discount)}</span></div>`:''}
+      <div class="invoice-total-row"><span>Total</span><span>${fmtMoney(o.total)}</span></div>
+      <div class="invoice-meta" style="margin-top:10px;text-align:center;">Paiement : ${o.paymentStatus==='paye'?'Payé':'À la livraison (non payé)'} ${PAYMENT_METHOD_LABELS[o.paymentMethod]?'· '+PAYMENT_METHOD_LABELS[o.paymentMethod]:''}</div>
+      ${o.notes? `<div class="invoice-meta" style="text-align:center;">Note : ${escapeHtml(o.notes)}</div>`:''}
+      <div class="invoice-foot">Merci de votre confiance !</div>
+    </div>`;
+  document.getElementById('printArea').innerHTML = html;
+  setTimeout(()=>window.print(), 80);
+}
+
+/* =========================================================
+   IMPRESSION — Facture Proforma (entreprises)
+   ========================================================= */
+function openProformaModal(orderId){
+  const o = DB.orders.find(x=>x.id===orderId);
+  if(!o) return;
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3>Facture Proforma</h3>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Pour ${escapeHtml(o.clientName)} — ${fmtMoney(o.total)}</div>
+      <form id="proformaForm">
+        <div class="field"><label>Nom de l'entreprise cliente</label><input required id="pf_company" placeholder="Ex : Société XYZ SARL" value="${escapeHtml(o.clientName)}"></div>
+        <div class="field"><label>Adresse</label><input id="pf_address" placeholder="Ex : Ouaga 2000, Ouagadougou"></div>
+        <div class="row">
+          <div class="field"><label>Contact</label><input id="pf_contact" value="${escapeHtml(o.clientPhone||'')}"></div>
+          <div class="field"><label>IFU (optionnel)</label><input id="pf_ifu"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>TVA (%)</label><input type="number" min="0" id="pf_tva" value="${DB.settings.tvaDefaultPercent||0}"></div>
+          <div class="field"><label>Validité (jours)</label><input type="number" min="1" id="pf_validity" value="${DB.settings.proformaValidityDays||15}"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" data-action="close-modal">Annuler</button>
+          <button type="submit" class="btn accent">${ICONS.printer} Générer &amp; imprimer</button>
+        </div>
+      </form>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.onclick = (e)=>{ if(e.target===overlay) overlay.remove(); };
+  overlay.querySelector('[data-action="close-modal"]').onclick = ()=>overlay.remove();
+  overlay.querySelector('#proformaForm').onsubmit = (e)=>{
+    e.preventDefault();
+    const client = {
+      company: overlay.querySelector('#pf_company').value.trim(),
+      address: overlay.querySelector('#pf_address').value.trim(),
+      contact: overlay.querySelector('#pf_contact').value.trim(),
+      ifu: overlay.querySelector('#pf_ifu').value.trim()
+    };
+    const tva = parseFloat(overlay.querySelector('#pf_tva').value)||0;
+    const validity = parseInt(overlay.querySelector('#pf_validity').value)||15;
+    printProforma(o, client, tva, validity);
+    overlay.remove();
+  };
+}
+function printProforma(o, client, tvaPercent, validityDays){
+  setPrintMode('a4');
+  const c = DB.settings.company||{};
+  const validUntil = new Date(); validUntil.setDate(validUntil.getDate()+validityDays);
+  const tvaAmount = o.total * (tvaPercent/100);
+  const totalTTC = o.total + tvaAmount;
+  const html = `
+    <div class="proforma">
+      <div class="proforma-head">
+        <div>
+          <h2>${escapeHtml(c.legalName || DB.settings.restaurantName || 'Mon Restaurant')}</h2>
+          <div class="invoice-meta">
+            ${c.address? escapeHtml(c.address)+'<br>':''}
+            ${c.phone? 'Tél : '+escapeHtml(c.phone)+'<br>':''}
+            ${c.email? escapeHtml(c.email)+'<br>':''}
+            ${c.ifu? 'IFU : '+escapeHtml(c.ifu)+' ':''}${c.rccm? '· RCCM : '+escapeHtml(c.rccm):''}
+          </div>
+        </div>
+        <div class="proforma-title">
+          <div class="doctype">FACTURE PROFORMA</div>
+          <div class="invoice-meta">
+            N° PF-${escapeHtml(o.invoiceNumber.replace('F-',''))}<br>
+            Date d'émission : ${fmtDate(new Date().toISOString())}<br>
+            Valable jusqu'au : ${fmtDate(validUntil.toISOString())}
+          </div>
+        </div>
+      </div>
+      <div class="proforma-parties">
+        <div class="block">
+          <div class="block-label">Facturé à</div>
+          <div><strong>${escapeHtml(client.company)}</strong></div>
+          ${client.address? `<div>${escapeHtml(client.address)}</div>`:''}
+          ${client.contact? `<div>${escapeHtml(client.contact)}</div>`:''}
+          ${client.ifu? `<div>IFU : ${escapeHtml(client.ifu)}</div>`:''}
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Désignation</th><th style="text-align:center;">Qté</th><th style="text-align:right;">Prix unitaire</th><th style="text-align:right;">Montant</th></tr></thead>
+        <tbody>
+        ${o.items.map(i=>`
+          <tr>
+            <td>${escapeHtml(i.name)}${i.supplements.length? '<div class="supp-note" style="font-size:11px;color:#777;">+ '+i.supplements.map(s=>escapeHtml(s.name)).join(', ')+'</div>':''}</td>
+            <td style="text-align:center;">${i.qty}</td>
+            <td style="text-align:right;">${fmtMoney(i.unitPrice)}</td>
+            <td style="text-align:right;">${fmtMoney(i.lineTotal)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="proforma-totals">
+        <div class="r"><span>Sous-total</span><span>${fmtMoney(o.subtotal)}</span></div>
+        ${o.discount>0? `<div class="r"><span>Remise</span><span>- ${fmtMoney(o.discount)}</span></div>`:''}
+        ${tvaPercent>0? `<div class="r"><span>TVA (${tvaPercent}%)</span><span>${fmtMoney(tvaAmount)}</span></div>`:''}
+        <div class="r total"><span>Total ${tvaPercent>0?'TTC':''}</span><span>${fmtMoney(tvaPercent>0?totalTTC:o.total)}</span></div>
+      </div>
+      <div class="proforma-terms">
+        Cette facture proforma est établie à titre indicatif et ne vaut pas facture définitive. Elle est valable jusqu'au ${fmtDate(validUntil.toISOString())}.
+        ${c.bankName? `<br>Coordonnées bancaires : ${escapeHtml(c.bankName)}${c.bankAccount? ' — '+escapeHtml(c.bankAccount):''}` : ''}
+      </div>
+      <div class="proforma-sign">
+        <div class="s">Le Client</div>
+        <div class="s">Pour ${escapeHtml(c.legalName || DB.settings.restaurantName || 'le Restaurant')}</div>
+      </div>
+    </div>`;
+  document.getElementById('printArea').innerHTML = html;
+  setTimeout(()=>window.print(), 80);
+}
+
+/* =========================================================
+   STOCK
+   ========================================================= */
+function renderStock(){
+  const cats = [['plat','Plats'],['supplement','Suppléments'],['boisson','Boissons']];
+  return `
+    <div class="filters"><button class="btn accent" data-action="new-product">${ICONS.plus} Ajouter un produit</button></div>
+    ${cats.map(([cat,label])=>{
+      const items = DB.products.filter(p=>p.category===cat);
+      if(items.length===0) return '';
+      return `
+      <h2 class="section-title">${label}</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Produit</th><th>Prix</th><th>Stock</th><th>Seuil d'alerte</th><th></th></tr></thead>
+        <tbody>
+        ${items.map(p=>`
+          <tr>
+            <td>${escapeHtml(p.name)}</td><td>${fmtMoney(p.price)}</td>
+            <td>
+              <span class="tag ${p.stock<=p.seuil?'annulee':'terminee'}">${p.stock} ${escapeHtml(p.unit)}</span>
+              <button class="icon-btn" data-action="adjust-stock" data-id="${p.id}" data-d="-1" style="margin-left:6px;">−</button>
+              <button class="icon-btn" data-action="adjust-stock" data-id="${p.id}" data-d="1">+</button>
+            </td>
+            <td>${p.seuil} ${escapeHtml(p.unit)}</td>
+            <td><button class="icon-btn" data-action="edit-product" data-id="${p.id}">${ICONS.edit}</button>
+            <button class="icon-btn" data-action="delete-product" data-id="${p.id}">${ICONS.trash}</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`;
+    }).join('')}
+  `;
+}
+function bindStockEvents(){
+  const np = document.querySelector('[data-action="new-product"]'); if(np) np.onclick = ()=> openProductModal(null);
+  document.querySelectorAll('[data-action="edit-product"]').forEach(el=>{ el.onclick = ()=> openProductModal(DB.products.find(p=>p.id===el.dataset.id)); });
+  document.querySelectorAll('[data-action="delete-product"]').forEach(el=>{ el.onclick = async ()=>{ if(confirm('Supprimer ce produit ?')){ await deleteDocItem('products', el.dataset.id); toast('Produit supprimé.'); renderPartial(); } }; });
+  document.querySelectorAll('[data-action="adjust-stock"]').forEach(el=>{
+    el.onclick = async ()=>{ const p = DB.products.find(x=>x.id===el.dataset.id); await updateDoc_('products', p.id, {stock: Math.max(0, p.stock + parseInt(el.dataset.d))}); renderPartial(); };
+  });
+}
+function openProductModal(product){
+  const isNew = !product;
+  const p = product || {id:'', name:'', category:'plat', price:0, stock:0, seuil:5, unit:'portion'};
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3>${isNew?'Ajouter un produit':'Modifier le produit'}</h3>
+      <form id="productForm">
+        <div class="field"><label>Nom</label><input required id="f_name" value="${escapeHtml(p.name)}"></div>
+        <div class="row">
+          <div class="field"><label>Catégorie</label>
+            <select id="f_cat">
+              <option value="plat" ${p.category==='plat'?'selected':''}>Plat</option>
+              <option value="supplement" ${p.category==='supplement'?'selected':''}>Supplément</option>
+              <option value="boisson" ${p.category==='boisson'?'selected':''}>Boisson</option>
+            </select>
+          </div>
+          <div class="field"><label>Unité</label><input id="f_unit" value="${escapeHtml(p.unit)}" placeholder="portion, verre..."></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Prix (${DB.settings.currency})</label><input required type="number" min="0" id="f_price" value="${p.price}"></div>
+          <div class="field"><label>Stock actuel</label><input required type="number" min="0" id="f_stock" value="${p.stock}"></div>
+        </div>
+        <div class="field"><label>Seuil d'alerte</label><input required type="number" min="0" id="f_seuil" value="${p.seuil}"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" data-action="close-modal">Annuler</button>
+          <button type="submit" class="btn accent">Enregistrer</button>
+        </div>
+      </form>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('[data-action="close-modal"]').onclick = ()=>overlay.remove();
+  overlay.onclick = (e)=>{ if(e.target===overlay) overlay.remove(); };
+  overlay.querySelector('#productForm').onsubmit = async (e)=>{
+    e.preventDefault();
+    const data = {
+      name: overlay.querySelector('#f_name').value.trim(), category: overlay.querySelector('#f_cat').value,
+      unit: overlay.querySelector('#f_unit').value.trim()||'unité',
+      price: parseFloat(overlay.querySelector('#f_price').value)||0,
+      stock: parseInt(overlay.querySelector('#f_stock').value)||0,
+      seuil: parseInt(overlay.querySelector('#f_seuil').value)||0
+    };
+    if(isNew) await createDoc('products', data); else await updateDoc_('products', product.id, data);
+    toast('Produit enregistré.'); overlay.remove(); renderPartial();
+  };
+}
+
+/* =========================================================
+   VENTES & FACTURES
+   ========================================================= */
+function renderSales(){
+  const range = state.salesFilter.range;
+  let from = todayISO(), to = todayISO();
+  if(range==='week'){ from = startOfWeekISO(); }
+  if(range==='month'){ from = startOfMonthISO(); }
+  if(range==='all'){ from = '0000-01-01'; }
+  const list = DB.orders.filter(o=>o.createdAt.slice(0,10)>=from && o.createdAt.slice(0,10)<=to).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  const totalCA = sumCA(list, from, to);
+
+  return `
+    <div class="filters">
+      <select id="rangeSelect">
+        <option value="today" ${range==='today'?'selected':''}>Aujourd'hui</option>
+        <option value="week" ${range==='week'?'selected':''}>Cette semaine</option>
+        <option value="month" ${range==='month'?'selected':''}>Ce mois</option>
+        <option value="all" ${range==='all'?'selected':''}>Tout l'historique</option>
+      </select>
+      <div class="card stat-card" style="padding:9px 16px;display:inline-flex;align-items:center;gap:10px;">
+        <span style="font-size:12.5px;color:var(--muted);font-weight:600;">Total sur la période :</span>
+        <span style="font-family:'Fraunces',serif;font-size:18px;">${fmtMoney(totalCA)}</span>
+      </div>
+      <button class="btn ghost sm" data-action="export-csv">${ICONS.download} Exporter en CSV</button>
+    </div>
+    ${list.length===0? emptyState('Aucune vente sur cette période','Change la période ou crée une nouvelle commande.') : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Facture</th><th>Date</th><th>Client</th><th>Type</th><th>Total</th><th>Paiement</th><th>Statut</th><th></th></tr></thead>
+      <tbody>
+      ${list.map(o=>`
+        <tr>
+          <td>${o.invoiceNumber}</td><td>${fmtDateTime(o.createdAt)}</td><td>${escapeHtml(o.clientName)}</td>
+          <td>${ORDER_TYPE_LABELS[o.orderType]}</td><td>${fmtMoney(o.total)}</td><td>${paymentTag(o.paymentStatus)}</td><td>${statusTag(o.status)}</td>
+          <td style="display:flex;gap:6px;">
+            <button class="btn ghost sm" data-action="print-ticket" data-id="${o.id}">${ICONS.printer}</button>
+            <button class="btn ghost sm" data-action="open-proforma" data-id="${o.id}">${ICONS.doc}</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>`}
+
+    ${isAdminLike(state.user.role) ? renderCashClosing() : ''}
+  `;
+}
+function renderCashClosing(){
+  const date = state.closingDate || todayISO();
+  const orders = DB.orders.filter(o=>o.createdAt.slice(0,10)===date);
+  const paid = orders.filter(o=>o.paymentStatus==='paye' && o.status!=='annulee');
+  const unpaid = orders.filter(o=>o.paymentStatus!=='paye' && o.status!=='annulee');
+  const cancelled = orders.filter(o=>o.status==='annulee');
+  const byMethod = {especes:0, orange_money:0, moov_money:0, autre:0};
+  paid.forEach(o=>{ byMethod[o.paymentMethod||'autre'] = (byMethod[o.paymentMethod||'autre']||0) + o.total; });
+  const totalPaid = paid.reduce((s,o)=>s+o.total,0);
+  const totalUnpaid = unpaid.reduce((s,o)=>s+o.total,0);
+
+  return `
+    <h2 class="section-title">
+      Clôture de caisse
+      <input type="date" id="closingDate" value="${date}" style="width:auto;">
+    </h2>
+    <div class="closing-grid">
+      <div class="card stat-card"><div class="stat-label">Total encaissé</div><div class="stat-value" style="color:var(--success);">${fmtMoney(totalPaid)}</div><div class="stat-note">${paid.length} commande(s) payée(s)</div></div>
+      <div class="card stat-card"><div class="stat-label">En attente de paiement</div><div class="stat-value" style="color:var(--danger);">${fmtMoney(totalUnpaid)}</div><div class="stat-note">${unpaid.length} commande(s)</div></div>
+      <div class="card stat-card"><div class="stat-label">Commandes annulées</div><div class="stat-value">${cancelled.length}</div><div class="stat-note">sur ${orders.length} au total</div></div>
+    </div>
+    <div class="table-wrap" style="margin-bottom:16px;">
+      <table><thead><tr><th>Méthode de paiement</th><th style="text-align:right;">Montant encaissé</th></tr></thead>
+        <tbody>
+        ${Object.entries(PAYMENT_METHOD_LABELS).map(([k,label])=>`<tr><td>${label}</td><td style="text-align:right;">${fmtMoney(byMethod[k]||0)}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <button class="btn ghost sm" data-action="print-closing">${ICONS.printer} Imprimer la clôture</button>
+  `;
+}
+function bindSalesEvents(){
+  const rs = document.getElementById('rangeSelect'); if(rs) rs.onchange = ()=>{ state.salesFilter.range = rs.value; renderPartial(); };
+  document.querySelectorAll('[data-action="print-ticket"]').forEach(el=>{ el.onclick = ()=> printTicket(el.dataset.id); });
+  document.querySelectorAll('[data-action="open-proforma"]').forEach(el=>{ el.onclick = ()=> openProformaModal(el.dataset.id); });
+  const cd = document.getElementById('closingDate'); if(cd) cd.onchange = ()=>{ state.closingDate = cd.value; renderPartial(); };
+  const pc = document.querySelector('[data-action="print-closing"]'); if(pc) pc.onclick = printClosing;
+  const ex = document.querySelector('[data-action="export-csv"]'); if(ex) ex.onclick = exportSalesCsv;
+}
+function printClosing(){
+  const date = state.closingDate || todayISO();
+  const orders = DB.orders.filter(o=>o.createdAt.slice(0,10)===date);
+  const paid = orders.filter(o=>o.paymentStatus==='paye' && o.status!=='annulee');
+  const unpaid = orders.filter(o=>o.paymentStatus!=='paye' && o.status!=='annulee');
+  const byMethod = {especes:0, orange_money:0, moov_money:0, autre:0};
+  paid.forEach(o=>{ byMethod[o.paymentMethod||'autre'] = (byMethod[o.paymentMethod||'autre']||0) + o.total; });
+  const totalPaid = paid.reduce((s,o)=>s+o.total,0);
+  setPrintMode('thermal');
+  document.getElementById('printArea').innerHTML = `
+    <div class="invoice">
+      <div class="invoice-head"><h2>${escapeHtml(DB.settings.restaurantName)}</h2><div class="invoice-meta">Clôture de caisse<br>${fmtDate(date)}</div></div>
+      <table><thead><tr><th>Méthode</th><th style="text-align:right;">Montant</th></tr></thead>
+        <tbody>${Object.entries(PAYMENT_METHOD_LABELS).map(([k,label])=>`<tr><td>${label}</td><td style="text-align:right;">${fmtMoney(byMethod[k]||0)}</td></tr>`).join('')}</tbody>
+      </table>
+      <div class="invoice-total-row"><span>Total encaissé</span><span>${fmtMoney(totalPaid)}</span></div>
+      <div class="invoice-sub-row"><span>En attente</span><span>${fmtMoney(unpaid.reduce((s,o)=>s+o.total,0))}</span></div>
+      <div class="invoice-foot">${orders.length} commande(s) au total ce jour</div>
+    </div>`;
+  setTimeout(()=>window.print(), 80);
+}
+async function exportSalesCsv(){
+  const range = state.salesFilter.range;
+  let from = todayISO(), to = todayISO();
+  if(range==='week') from = startOfWeekISO();
+  if(range==='month') from = startOfMonthISO();
+  if(range==='all') from = '0000-01-01';
+  const list = DB.orders.filter(o=>o.createdAt.slice(0,10)>=from && o.createdAt.slice(0,10)<=to).sort((a,b)=>a.createdAt.localeCompare(b.createdAt));
+  const rows = [['Facture','Date','Client','Téléphone','Type','Sous-total','Remise','Total','Paiement','Méthode','Statut']];
+  list.forEach(o=>rows.push([o.invoiceNumber, fmtDateTime(o.createdAt), o.clientName, o.clientPhone||'', ORDER_TYPE_LABELS[o.orderType], o.subtotal, o.discount, o.total, o.paymentStatus==='paye'?'Payé':'Non payé', PAYMENT_METHOD_LABELS[o.paymentMethod]||'', statusLabel(o.status)]));
+  const csv = rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
+  downloadFile('ventes_'+todayISO()+'.csv', csv, 'text/csv;charset=utf-8;');
+  toast('Export CSV téléchargé.');
+}
+function statusLabel(s){ return {en_attente:'En attente',en_preparation:'En préparation',en_livraison:'En livraison',servie:'Servie',livree:'Livrée',annulee:'Annulée'}[s]||s; }
+
+/* =========================================================
+   RAPPORTS
+   ========================================================= */
+function renderReports(){
+  const tab = state.reportTab;
+  let buckets = [];
+  if(tab==='jour'){ for(let i=13;i>=0;i--){ const d=dateNDaysAgo(i); buckets.push({label:new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}), value: sumCA(DB.orders,d,d)}); } }
+  else if(tab==='semaine'){
+    for(let i=7;i>=0;i--){
+      const end = new Date(); end.setDate(end.getDate()-i*7); const endStr = end.toISOString().slice(0,10);
+      const start = new Date(end); start.setDate(start.getDate()-6); const startStr = start.toISOString().slice(0,10);
+      buckets.push({label:'S'+(8-i), value: sumCA(DB.orders,startStr,endStr)});
+    }
+  } else {
+    for(let i=11;i>=0;i--){
+      const d = new Date(); d.setMonth(d.getMonth()-i,1);
+      const start = d.toISOString().slice(0,10);
+      const end = new Date(d.getFullYear(), d.getMonth()+1, 0).toISOString().slice(0,10);
+      buckets.push({label:d.toLocaleDateString('fr-FR',{month:'short'}), value: sumCA(DB.orders,start,end)});
+    }
+  }
+  const max = Math.max(1, ...buckets.map(b=>b.value));
+  const salesByProduct = {};
+  DB.orders.filter(isRevenueOrder).forEach(o=>o.items.forEach(i=>{ salesByProduct[i.name] = (salesByProduct[i.name]||0) + i.qty; }));
+  const top = Object.entries(salesByProduct).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  return `
+    <div class="chart-tabs">
+      <div class="chart-tab ${tab==='jour'?'active':''}" data-action="report-tab" data-t="jour">Par jour (14j)</div>
+      <div class="chart-tab ${tab==='semaine'?'active':''}" data-action="report-tab" data-t="semaine">Par semaine (8s)</div>
+      <div class="chart-tab ${tab==='mois'?'active':''}" data-action="report-tab" data-t="mois">Par mois (12m)</div>
+    </div>
+    <div class="card">
+      <div class="bar-wrap">
+        ${buckets.map(b=>`
+          <div class="bar-col">
+            <div class="bar-val">${b.value>0? Math.round(b.value/1000)+'k':''}</div>
+            <div class="bar" style="height:${Math.max(2,(b.value/max)*170)}px;" title="${fmtMoney(b.value)}"></div>
+            <div class="bar-lbl">${b.label}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <h2 class="section-title">Produits les plus vendus</h2>
+    ${top.length===0? emptyState('Pas encore de données','Les ventes apparaîtront ici.') : `
+    <div class="table-wrap"><table><thead><tr><th>Produit</th><th>Quantité vendue</th></tr></thead>
+      <tbody>${top.map(([name,qty])=>`<tr><td>${escapeHtml(name)}</td><td>${qty}</td></tr>`).join('')}</tbody>
+    </table></div>`}
+  `;
+}
+function bindReportsEvents(){ document.querySelectorAll('[data-action="report-tab"]').forEach(el=>{ el.onclick = ()=>{ state.reportTab = el.dataset.t; renderPartial(); }; }); }
+
+/* =========================================================
+   PARAMÈTRES
+   ========================================================= */
+function renderSettings(){
+  const c = DB.settings.company||{};
+  return `
+    <h2 class="section-title">Restaurant</h2>
+    <div class="card" style="max-width:460px;margin-bottom:10px;">
+      <div class="field"><label>Nom affiché (tableau de bord, tickets)</label><input id="restoName" value="${escapeHtml(DB.settings.restaurantName)}"></div>
+      <div class="field">
+        <label>Format d'impression des tickets par défaut</label>
+        <select id="printFormatSelect">
+          <option value="thermal" ${DB.settings.printFormat==='thermal'?'selected':''}>Imprimante thermique (ticket 80mm)</option>
+          <option value="a4" ${DB.settings.printFormat==='a4'?'selected':''}>Feuille A4 standard</option>
+        </select>
+      </div>
+      <button class="btn ghost sm" data-action="save-resto">Enregistrer</button>
+    </div>
+
+    <h2 class="section-title">Informations pour les factures proforma (entreprises)</h2>
+    <div class="card" style="max-width:460px;margin-bottom:10px;">
+      <div class="field"><label>Raison sociale</label><input id="c_legal" value="${escapeHtml(c.legalName)}" placeholder="Ex : Restaurant Babenda SARL"></div>
+      <div class="field"><label>Adresse</label><input id="c_address" value="${escapeHtml(c.address)}"></div>
+      <div class="row">
+        <div class="field"><label>Téléphone</label><input id="c_phone" value="${escapeHtml(c.phone)}"></div>
+        <div class="field"><label>Email</label><input id="c_email" value="${escapeHtml(c.email)}"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>IFU</label><input id="c_ifu" value="${escapeHtml(c.ifu)}"></div>
+        <div class="field"><label>RCCM</label><input id="c_rccm" value="${escapeHtml(c.rccm)}"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Banque (optionnel)</label><input id="c_bank" value="${escapeHtml(c.bankName)}"></div>
+        <div class="field"><label>Compte / RIB (optionnel)</label><input id="c_iban" value="${escapeHtml(c.bankAccount)}"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>TVA par défaut (%)</label><input type="number" min="0" id="c_tva" value="${DB.settings.tvaDefaultPercent||0}"></div>
+        <div class="field"><label>Validité proforma (jours)</label><input type="number" min="1" id="c_validity" value="${DB.settings.proformaValidityDays||15}"></div>
+      </div>
+      <button class="btn ghost sm" data-action="save-company">Enregistrer</button>
+    </div>
+
+    <h2 class="section-title">Comptes utilisateurs</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Nom</th><th>Rôle</th><th>Code PIN</th><th></th></tr></thead>
+      <tbody>${usersTableRowsHtml()}</tbody>
+    </table></div>
+    <button class="btn ghost sm" style="margin-top:10px;" data-action="new-user">${ICONS.plus} Ajouter un compte</button>
+    ${state.user.role!=='superadmin' ? `<div style="font-size:12px;color:var(--muted);margin-top:8px;">En tant qu'Admin, tu ne peux gérer que les comptes Caissier(ère). Seul un Super Admin peut créer ou modifier un autre compte Admin / Super Admin.</div>` : ''}
+
+    <h2 class="section-title">Livreurs</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Nom</th><th>Téléphone</th><th></th></tr></thead>
+      <tbody>${DB.delivery.map(p=>`<tr><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.phone)}</td><td><button class="icon-btn" data-action="delete-delivery" data-id="${p.id}">${ICONS.trash}</button></td></tr>`).join('')}</tbody>
+    </table></div>
+    <button class="btn ghost sm" style="margin-top:10px;" data-action="new-delivery">${ICONS.plus} Ajouter un livreur</button>
+
+    <h2 class="section-title">Quartiers de livraison</h2>
+    <div class="card">
+      <div class="supp-list" style="margin-bottom:14px;">
+        ${DB.settings.zones.map(z=>`<span class="supp-chip on">${escapeHtml(z)} <span data-action="delete-zone" data-z="${escapeHtml(z)}" style="cursor:pointer;margin-left:4px;">✕</span></span>`).join('')}
+      </div>
+      <div class="row" style="max-width:400px;">
+        <input id="newZone" placeholder="Nouveau quartier...">
+        <button class="btn ghost sm" data-action="add-zone" style="flex:0 0 auto;">Ajouter</button>
+      </div>
+    </div>
+  `;
+}
+function canManageUser(target){
+  if(state.user.role==='superadmin') return true;
+  if(state.user.role==='admin') return target.role==='caissier';
+  return false;
+}
+function usersTableRowsHtml(){
+  return DB.users.map(u=>{
+    const manageable = canManageUser(u);
+    const isSelf = u.id===state.user.id;
+    const isLastSuperadmin = u.role==='superadmin' && countSuperadmins()<=1;
+    let actions = '';
+    if(manageable) actions += `<button class="icon-btn" data-action="edit-user" data-id="${u.id}">${ICONS.edit}</button>`;
+    if(manageable && !isSelf && !isLastSuperadmin) actions += `<button class="icon-btn" data-action="delete-user" data-id="${u.id}">${ICONS.trash}</button>`;
+    if(!manageable) actions = `<span style="color:var(--muted);font-size:12px;">—</span>`;
+    return `<tr><td>${escapeHtml(u.name)}${isSelf? ' <span style="color:var(--muted);font-size:11.5px;">(toi)</span>':''}</td><td>${roleLabel(u.role)}</td><td>••••</td><td>${actions}</td></tr>`;
+  }).join('');
+}
+function bindSettingsEvents(){
+  const rn = document.querySelector('[data-action="save-resto"]');
+  if(rn) rn.onclick = async ()=>{
+    await saveSettings({ restaurantName: document.getElementById('restoName').value.trim() || 'Mon Restaurant', printFormat: document.getElementById('printFormatSelect').value });
+    toast('Enregistré.'); render();
+  };
+  const sc = document.querySelector('[data-action="save-company"]');
+  if(sc) sc.onclick = async ()=>{
+    const company = {
+      legalName: document.getElementById('c_legal').value.trim(), address: document.getElementById('c_address').value.trim(),
+      phone: document.getElementById('c_phone').value.trim(), email: document.getElementById('c_email').value.trim(),
+      ifu: document.getElementById('c_ifu').value.trim(), rccm: document.getElementById('c_rccm').value.trim(),
+      bankName: document.getElementById('c_bank').value.trim(), bankAccount: document.getElementById('c_iban').value.trim()
+    };
+    await saveSettings({ company, tvaDefaultPercent: parseFloat(document.getElementById('c_tva').value)||0, proformaValidityDays: parseInt(document.getElementById('c_validity').value)||15 });
+    toast('Informations enregistrées.'); renderPartial();
+  };
+  const nu = document.querySelector('[data-action="new-user"]'); if(nu) nu.onclick = ()=> openUserModal(null);
+  document.querySelectorAll('[data-action="edit-user"]').forEach(el=>{ el.onclick = ()=> openUserModal(DB.users.find(u=>u.id===el.dataset.id)); });
+  document.querySelectorAll('[data-action="delete-user"]').forEach(el=>{
+    el.onclick = async ()=>{
+      const target = DB.users.find(x=>x.id===el.dataset.id);
+      if(!target || !canManageUser(target)) return;
+      if(target.role==='superadmin' && countSuperadmins()<=1){ toast('Impossible : il doit rester au moins un compte Super Admin.'); return; }
+      if(confirm('Supprimer ce compte ?')){ await deleteDocItem('users', el.dataset.id); renderPartial(); }
+    };
+  });
+  const nd = document.querySelector('[data-action="new-delivery"]'); if(nd) nd.onclick = ()=> openDeliveryModal();
+  document.querySelectorAll('[data-action="delete-delivery"]').forEach(el=>{ el.onclick = async ()=>{ await deleteDocItem('delivery', el.dataset.id); renderPartial(); }; });
+  const az = document.querySelector('[data-action="add-zone"]');
+  if(az) az.onclick = async ()=>{ const v = document.getElementById('newZone').value.trim(); if(v && !DB.settings.zones.includes(v)){ await saveSettings({zones:[...DB.settings.zones, v]}); renderPartial(); } };
+  document.querySelectorAll('[data-action="delete-zone"]').forEach(el=>{ el.onclick = async ()=>{ await saveSettings({zones: DB.settings.zones.filter(z=>z!==el.dataset.z)}); renderPartial(); }; });
+}
+function openUserModal(user){
+  const isNew = !user;
+  const u = user || {id:'', name:'', role:'caissier', pin:''};
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3>${isNew?'Ajouter un compte':'Modifier le compte'}</h3>
+      <form id="userForm">
+        <div class="field"><label>Nom</label><input required id="u_name" value="${escapeHtml(u.name)}"></div>
+        <div class="field"><label>Rôle</label>
+          <select id="u_role" ${state.user.role!=='superadmin'?'disabled':''}>
+            <option value="caissier" ${u.role==='caissier'?'selected':''}>Caissier(ère)</option>
+            ${state.user.role==='superadmin' ? `
+            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+            <option value="superadmin" ${u.role==='superadmin'?'selected':''}>Super Admin</option>` : ''}
+          </select>
+          ${state.user.role!=='superadmin' ? `<div style="font-size:11.5px;color:var(--muted);margin-top:4px;">Seul un Super Admin peut attribuer les rôles Admin ou Super Admin.</div>`:''}
+        </div>
+        <div class="field"><label>Code PIN (4 chiffres)</label><input required maxlength="4" pattern="\\d{4}" id="u_pin" value="${escapeHtml(u.pin)}"></div>
+        <div class="modal-actions"><button type="button" class="btn ghost" data-action="close-modal">Annuler</button><button type="submit" class="btn accent">Enregistrer</button></div>
+      </form>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('[data-action="close-modal"]').onclick = ()=>overlay.remove();
+  overlay.onclick = (e)=>{ if(e.target===overlay) overlay.remove(); };
+  overlay.querySelector('#userForm').onsubmit = async (e)=>{
+    e.preventDefault();
+    const data = { name: overlay.querySelector('#u_name').value.trim(), role: overlay.querySelector('#u_role').value, pin: overlay.querySelector('#u_pin').value.trim() };
+    if(!/^\d{4}$/.test(data.pin)){ toast('Le code PIN doit contenir 4 chiffres.'); return; }
+    if(isNew) await createDoc('users', data); else await updateDoc_('users', user.id, data);
+    toast('Compte enregistré.'); overlay.remove(); renderPartial();
+  };
+}
+function openDeliveryModal(){
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3>Ajouter un livreur</h3>
+      <form id="delForm">
+        <div class="field"><label>Nom</label><input required id="d_name"></div>
+        <div class="field"><label>Téléphone</label><input id="d_phone"></div>
+        <div class="modal-actions"><button type="button" class="btn ghost" data-action="close-modal">Annuler</button><button type="submit" class="btn accent">Ajouter</button></div>
+      </form>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('[data-action="close-modal"]').onclick = ()=>overlay.remove();
+  overlay.onclick = (e)=>{ if(e.target===overlay) overlay.remove(); };
+  overlay.querySelector('#delForm').onsubmit = async (e)=>{
+    e.preventDefault();
+    await createDoc('delivery', { name: overlay.querySelector('#d_name').value.trim(), phone: overlay.querySelector('#d_phone').value.trim() });
+    toast('Livreur ajouté.'); overlay.remove(); renderPartial();
+  };
+}
+
+/* =========================================================
+   DÉMARRAGE
+   ========================================================= */
+(async function init(){
+  document.getElementById('app').innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;color:#6F715F;font-family:IBM Plex Sans,sans-serif;">Chargement…</div>';
+  initSupabase();
+  if(sbConfigOk){
+    try{
+      await seedIfEmpty();
+      await initialLoadAll();
+      subscribeAll();
+    }catch(e){
+      console.error('Erreur de connexion Supabase', e);
+      sb = null;
+      DB = jclone(DEFAULTS);
+    }
+  } else {
+    DB = jclone(DEFAULTS);
+  }
+  initialLoadDone = true;
+  render();
+})();
+</script>
+</body>
+</html>
